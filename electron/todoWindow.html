@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            font-family: Arial, sans-serif;
+        }
+
+        #app {
+            width: 100%;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            background: rgba(238, 237, 235, 0.85);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+    </div>
+    <script>
+        ipcRenderer.on('update-todo', (event, todos) => {
+            todoList.innerHTML = todos.map(todo => '<li>' + todo + '</li>').join('');
+        });
+    </script>
+</body>
+
+</html>
