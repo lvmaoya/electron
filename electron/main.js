@@ -12,6 +12,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    title: 'Todo App',
   })
 
   if (NODE_ENV === "development") {
@@ -33,6 +34,26 @@ const createWindow = () => {
       createTodoWindow(bounds);
     }
   });
+
+  // 创建应用菜单
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'File',
+      submenu: [
+        { label: '新建待办',accelerator: 'Cmd+N', click: () => { console.log('New Todo clicked'); } },
+        { label: '拾取待办',accelerator: 'Cmd+G', click: () => { console.log('New Todo clicked'); } },
+        { label: 'Exit', click: () => { app.quit(); } }
+      ]
+    },
+    {
+      label: 'Help',
+      submenu: [
+        { label: 'Learn More', click: () => { console.log('Learn More clicked'); } }
+      ]
+    }
+  ]);
+  Menu.setApplicationMenu(menu);
+
   mainWindow.webContents.on('message', (event, message) => {
     console.log(`Received message: ${message}`)
   })

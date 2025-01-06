@@ -5,7 +5,9 @@
   ],
   "restartable": "r",
   "watch": [
-    "*.*"
+    "*.*",
+    "src/**/*",
+    "electron/**/*"
   ],
-  "ext": "html,js,css"
+  "ext": "html,js,css,vue"
 }

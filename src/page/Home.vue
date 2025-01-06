@@ -33,7 +33,7 @@ const removeTodo = (index) => {
 };
 const fetchTodos = async () => {
   try {
-    const response = await getTodos();
+    const response = await getTodos({sortBy: "completed"});
     todos.value = response;
   } catch (error) {
     console.error('Failed to fetch todos:', error);
@@ -46,18 +46,22 @@ onMounted(() => {
 
 <style scoped>
 .container {
-  max-width: 600px;
-  margin: 50px auto;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9;
+  margin: 0 auto;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 14px;
 }
 
 .input-container {
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: none;
 }
 
 input {
@@ -70,7 +74,8 @@ input {
 ul {
   list-style-type: none;
   padding: 0;
-  max-height: 500px;
+  margin: 0;
+  height: 100%;
   overflow-y: auto;
 }
 
@@ -93,7 +98,6 @@ ul::-webkit-scrollbar-thumb:hover {
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #eee;
-  border-radius: 5px;
   cursor: pointer;
   user-select: none;
 
@@ -109,6 +113,7 @@ ul::-webkit-scrollbar-thumb:hover {
   text-align: center;
   color: #ccc;
   padding: 30px;
+  font-size: 14px;
 }
 .completed {
   text-decoration: line-through;

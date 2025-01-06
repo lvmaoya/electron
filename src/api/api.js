@@ -1,10 +1,13 @@
 import request from '@/api/request';
 
 // 获取所有 Todo 项目
-export function getTodos() {
+export function getTodos(data) {
+  console.log(data);
+  
   return request({
     url: '/todo/list',
     method: 'get',
+    params: data
   });
 }
 
