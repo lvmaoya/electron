@@ -2,19 +2,23 @@ import request from '@/api/request';
 
 // 获取所有 Todo 项目
 export function getTodos(data) {
-  console.log(data);
-  
   return request({
     url: '/todo/list',
     method: 'get',
     params: data
   });
 }
-
+// 获取今天的 Todo 项目
+export function getTodayTodos() {
+  return request({
+    url: '/todo',
+    method: 'get'
+  });
+}
 // 添加新的 Todo 项目
 export function addTodo(data) {
   return request({
-    url: '/todos',
+    url: '/todo',
     method: 'post',
     data,
   });
@@ -23,7 +27,7 @@ export function addTodo(data) {
 // 更新 Todo 项目
 export function updateTodo(id, data) {
   return request({
-    url: `/todos/${id}`,
+    url: `/todo/${id}`,
     method: 'put',
     data,
   });
@@ -32,7 +36,15 @@ export function updateTodo(id, data) {
 // 删除 Todo 项目
 export function deleteTodo(id) {
   return request({
-    url: `/todos/${id}`,
+    url: `/todo/${id}`,
     method: 'delete',
+  });
+}
+// 排序 Todo 项目
+export function orderTodo(params) {
+  return request({
+    url: `/todo/order`,
+    method: 'get',
+    params
   });
 }

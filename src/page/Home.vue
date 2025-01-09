@@ -3,11 +3,16 @@
     <div class="input-container">
       <input v-model="newTodo" placeholder="Add a new todo" @keyup.enter="addTodo" />
     </div>
-    <ul v-if="todos.length > 0">
-      <li v-for="(todo, index) in todos" :key="index" :class="todo.completed ? 'completed todo-item' : 'todo-item'">
-        {{ todo.taskName }}
-      </li>
-    </ul>
+    <div class="ul" v-if="todos.length > 0">
+      <draggable v-model="todos" :disabled="!state.enabled" item-key="id" ghost-class="ghost" chosen-class="chosen"
+        @start="state.dragging = true" @end="onEnd" animation="300">
+        <template #item="{ element }">
+          <div :class="element.completed ? 'completed todo-item' : 'todo-item'">
+            {{ element.id }}{{ element.taskName }}
+          </div>
+        </template>
+      </draggable>
+    </div>
     <div v-else class="empty">
       暂无待办事项
     </div>
@@ -15,9 +20,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { getTodos, } from '@/api/api';
-
+import { ref, reactive, onMounted } from 'vue';
+import { getTodos, getTodayTodos, orderTodo } from '@/api/api';
+import draggable from 'vuedraggable';
+const state = reactive({
+  enabled: true,
+  dragging: false,
+});
 const newTodo = ref('');
 const todos = ref([]);
 
@@ -31,17 +40,35 @@ const addTodo = () => {
 const removeTodo = (index) => {
   todos.value.splice(index, 1);
 };
+
 const fetchTodos = async () => {
   try {
-    const response = await getTodos({sortBy: "completed"});
+    const response = await getTodayTodos();
     todos.value = response;
   } catch (error) {
     console.error('Failed to fetch todos:', error);
   }
 };
+const reOrderTodo = async () => {
+  try {
+    await orderTodo();
+  } catch (error) {
+    console.error('Failed to order todos:', error);
+  }
+}
 onMounted(() => {
   fetchTodos();
 });
+const onEnd = (event) => {
+  state.dragging = false
+  let newIndex = event.newIndex;
+
+  let id = event.item._underlying_vm_.id;
+  let prevTodoId = todos.value[newIndex - 1]?.id ?? -1;
+  let siblingTodoId = todos.value[newIndex + 1]?.id ?? -1;
+  orderTodo({ id, prevTodoId, siblingTodoId });
+};
+
 </script>
 
 <style scoped>
@@ -71,7 +98,7 @@ input {
   border-radius: 4px;
 }
 
-ul {
+.ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
@@ -79,16 +106,16 @@ ul {
   overflow-y: auto;
 }
 
-ul::-webkit-scrollbar {
+.ul::-webkit-scrollbar {
   width: 0px;
 }
 
-ul::-webkit-scrollbar-thumb {
+.ul::-webkit-scrollbar-thumb {
   background-color: #888;
   border-radius: 10px;
 }
 
-ul::-webkit-scrollbar-thumb:hover {
+.ul::-webkit-scrollbar-thumb:hover {
   background-color: #555;
 }
 
@@ -109,14 +136,34 @@ ul::-webkit-scrollbar-thumb:hover {
     background-color: #f1f1f1;
   }
 }
-.empty{
+
+.empty {
   text-align: center;
   color: #ccc;
   padding: 30px;
   font-size: 14px;
 }
+
 .completed {
   text-decoration: line-through;
   color: #ccc;
+}
+
+.ghost {
+  opacity: 0.5;
+  border-radius: 10px;
+}
+
+
+.item {
+  width: 100%;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.not-draggable {
+  cursor: no-drop;
 }
 </style>
