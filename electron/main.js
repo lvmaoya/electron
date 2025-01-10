@@ -12,8 +12,9 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    titleBarStyle: 'hidden',
+    titleBarStyle: 'customButtonsOnHover',
     title: 'Todo App',
+    transparent: true
   })
 
   if (NODE_ENV === "development") {

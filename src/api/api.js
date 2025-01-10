@@ -25,9 +25,9 @@ export function addTodo(data) {
 }
 
 // 更新 Todo 项目
-export function updateTodo(id, data) {
+export function updateTodo(data) {
   return request({
-    url: `/todo/${id}`,
+    url: `/todo`,
     method: 'put',
     data,
   });

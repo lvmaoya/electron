@@ -1,5 +1,5 @@
 <template>
-    <RouterView />
+  <RouterView />
 </template>
 
 <script setup>
@@ -8,7 +8,8 @@ import { RouterView } from 'vue-router'
 
 <style>
 /* 你可以在这里添加全局样式 */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -16,8 +17,9 @@ html, body {
   overflow: hidden;
   box-sizing: border-box;
 }
-#app{
-    height: 100%;
-    width: 100%;
+
+#app {
+  height: 100%;
+  width: 100%;
 }
 </style>
