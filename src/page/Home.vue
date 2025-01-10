@@ -69,7 +69,7 @@
       </div>
       <div class="form-group desc">
         <label for="description">Description</label>
-        <textarea id="description" rows="3" v-model="currentTodo.description"
+        <textarea id="description" rows="4" v-model="currentTodo.description"
           placeholder="some description..."></textarea>
       </div>
       <button @click="saveTodo">
@@ -305,6 +305,7 @@ const closeModal = () => {
     column-gap: 20px;
     row-gap: 16px;
     box-sizing: content-box;
+    overflow: hidden;
 
     .form-group {
       width: calc(50% - 10px);
@@ -352,6 +353,7 @@ const closeModal = () => {
           border-radius: 6px;
           padding: 8px;
           flex: none;
+          resize: none
         }
       }
     }
