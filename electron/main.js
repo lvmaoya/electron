@@ -14,7 +14,10 @@ const createWindow = () => {
     height: 600,
     titleBarStyle: 'customButtonsOnHover',
     title: 'Todo App',
-    transparent: true
+    transparent: true,
+    frame: false,
+    vibrancy: 'fullscreen-ui',    // on MacOS
+    backgroundMaterial: 'acrylic' // on Windows 11
   })
 
   if (NODE_ENV === "development") {
@@ -23,7 +26,7 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
   }
   if (NODE_ENV === "development") {
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
   }
 
   //创建系统托盘

@@ -174,6 +174,10 @@ const closeModal = () => {
     user-select: none;
     text-align: center;
     position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+
     .title {
       font-size: 18px;
       font-weight: bold;
