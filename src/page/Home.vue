@@ -1,18 +1,32 @@
 <template>
   <div class="container">
     <div class="header">
-      <div class="title">xxxx</div>
-      <button @click="toggleState">+</button>
-    </div>
-    <div class="input-container">
-      <input v-model="newTodo" placeholder="Add a new todo" @keyup.enter="addTodo" />
+      <div class="title">我的待办</div>
+      <div class="button-group">
+        <button @click="toggleState">+</button>
+        <button @click="toggleState" aria-label="more">
+          <svg t="1736748055817" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            p-id="4242" width="16" height="16">
+            <path
+              d="M426.666667 810.666667a85.333333 85.333333 0 1 1 170.666666 0 85.333333 85.333333 0 0 1-170.666666 0z m0-298.666667a85.333333 85.333333 0 1 1 170.666666 0 85.333333 85.333333 0 0 1-170.666666 0z m0-298.666667a85.333333 85.333333 0 1 1 170.666666 0 85.333333 85.333333 0 0 1-170.666666 0z"
+              fill="#25583a" p-id="4243"></path>
+          </svg> </button>
+      </div>
     </div>
     <div class="ul" v-if="todos.length > 0">
+      <div class="todo-item add-todo">
+        <span>
+          添加
+        </span>
+        <input type="text" class="add-input" placeholder="请输入待办事项" @keyup.enter="addTodo" v-model="newTodo">
+      </div>
       <draggable v-model="todos" :disabled="!state.enabled" item-key="id" ghost-class="ghost" chosen-class="chosen"
         @start="state.dragging = true" @end="onEnd" animation="300">
         <template #item="{ element }">
-          <div :class="element.progress ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)">
-            {{ element.id }}{{ element.taskName }}
+          <div :class="element.progress ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)"
+            @longPress="handleLongPress(element)">
+            <input type="checkbox" :checked="element.progress == 100">
+            {{ element.taskName }}
           </div>
         </template>
       </draggable>
@@ -27,11 +41,11 @@
       <!-- <h2>编辑 Todo</h2> -->
       <div class="form-group">
         <label for="taskName">Task name</label>
-        <input id="taskName" v-model="currentTodo.taskName" placeholder="Edit task name" />
+        <input id="taskName" v-model="currentEditTodo.taskName" placeholder="Edit task name" />
       </div>
       <div class="form-group">
         <label for="progress">Progress</label>
-        <select id="progress" v-model="currentTodo.progress">
+        <select id="progress" v-model="currentEditTodo.progress">
           <option value="0">0%</option>
           <option value="20">20%</option>
           <option value="40">40%</option>
@@ -43,15 +57,15 @@
 
       <div class="form-group">
         <label for="dueDate">Due date</label>
-        <input id="dueDate" type="datetime-local" v-model="currentTodo.dueDate" />
+        <input id="dueDate" type="datetime-local" v-model="currentEditTodo.dueDate" />
       </div>
       <div class="form-group">
         <label for="reminderDate">Reminder date</label>
-        <input id="reminderDate" type="datetime-local" v-model="currentTodo.reminderDate" />
+        <input id="reminderDate" type="datetime-local" v-model="currentEditTodo.reminderDate" />
       </div>
       <div class="form-group">
         <label for="priority">Priority</label>
-        <select id="priority" v-model="currentTodo.priority">
+        <select id="priority" v-model="currentEditTodo.priority">
           <option value="1">一级</option>
           <option value="2">二级</option>
           <option value="3">三级</option>
@@ -61,7 +75,7 @@
       </div>
       <div class="form-group">
         <label for="category">Category</label>
-        <select id="category" v-model="currentTodo.category">
+        <select id="category" v-model="currentEditTodo.category">
           <option value="1">个人</option>
           <option value="2">工作</option>
           <option value="3">学习</option>
@@ -69,7 +83,7 @@
       </div>
       <div class="form-group desc">
         <label for="description">Description</label>
-        <textarea id="description" rows="4" v-model="currentTodo.description"
+        <textarea id="description" rows="4" v-model="currentEditTodo.description"
           placeholder="some description..."></textarea>
       </div>
       <button @click="saveTodo">
@@ -92,17 +106,31 @@ const state = reactive({
 const newTodo = ref('');
 const todos = ref([]);
 const isEditing = ref(false);
-const currentTodo = ref({});
+const currentEditTodo = ref({});
 const saveLoading = ref(false);
 
 const addTodo = () => {
+  console.log(newTodo.value);
+
   if (newTodo.value.trim() !== '') {
-    todos.value.push(newTodo.value);
+    let todo = generateDefaultTodo(newTodo.value);
+    todos.value.append(todo);
     newTodo.value = '';
   }
 };
+const generateDefaultTodo = (title) => {
+  return {
+    taskName: title,
+    progress: 0,
+    dueDate: '',
+    reminderDate: '',
+    priority: 1,
+    category: 1,
+    description: ''
+  }
+}
 const editTodo = (todo) => {
-  currentTodo.value = { ...todo };
+  currentEditTodo.value = { ...todo };
   isEditing.value = true;
 };
 
@@ -110,14 +138,14 @@ const saveTodo = async () => {
   if (saveLoading.value) return;
   try {
     saveLoading.value = true;
-    delete currentTodo.value.updatedTime
-    currentTodo.value.dueDate = dayjs(currentTodo.value.dueDate).format('YYYY-MM-DD HH:mm:ss');
-    currentTodo.value.reminderDate = dayjs(currentTodo.value.reminderDate).format('YYYY-MM-DD HH:mm:ss');
+    delete currentEditTodo.value.updatedTime
+    currentEditTodo.value.dueDate = dayjs(currentEditTodo.value.dueDate).format('YYYY-MM-DD HH:mm:ss');
+    currentEditTodo.value.reminderDate = dayjs(currentEditTodo.value.reminderDate).format('YYYY-MM-DD HH:mm:ss');
 
-    await updateTodo(currentTodo.value);
-    const index = todos.value.findIndex(todo => todo.id === currentTodo.value.id);
+    await updateTodo(currentEditTodo.value);
+    const index = todos.value.findIndex(todo => todo.id === currentEditTodo.value.id);
     if (index !== -1) {
-      todos.value[index] = { ...currentTodo.value };
+      todos.value[index] = { ...currentEditTodo.value };
     }
     closeModal();
   } catch (error) {
@@ -126,6 +154,10 @@ const saveTodo = async () => {
     saveLoading.value = false;
   }
 };
+const handleLongPress = () => {
+  console.log("calculating");
+
+}
 const removeTodo = (index) => {
   todos.value.splice(index, 1);
 };
@@ -153,8 +185,9 @@ const onEnd = (event) => {
 };
 const closeModal = () => {
   isEditing.value = false;
-  currentTodo.value = {};
+  currentEditTodo.value = {};
 };
+
 </script>
 
 <style scoped>
@@ -163,7 +196,7 @@ const closeModal = () => {
   height: 100%;
   overflow: hidden;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 16px;
   padding: 0px 10px;
 
   .header {
@@ -184,18 +217,26 @@ const closeModal = () => {
       color: #007aff;
     }
 
-    button {
+    .button-group {
       position: absolute;
       right: 0;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: none;
-      font-size: 20px;
-      font-weight: 300;
-      /* background-color: rgba(236, 241, 237, 1); */
-      background-color: transparent;
-      color: #25583a;
+      display: flex;
+      align-items: center;
+
+      button {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin: 0;
+        border: none;
+        font-size: 20px;
+        font-weight: 300;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+        color: #25583a;
+      }
     }
 
     .item {
@@ -209,24 +250,6 @@ const closeModal = () => {
   }
 }
 
-.input-container {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: none;
-
-  input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-}
-
 .ul {
   list-style-type: none;
   padding: 0;
@@ -236,20 +259,52 @@ const closeModal = () => {
 
   .todo-item {
     display: flex;
-    justify-content: center;
+    justify-content: start;
+    gap: 4px;
     align-items: center;
-    padding: 10px;
+    padding: 8px;
     /* border-bottom: 1px solid #eee; */
     cursor: pointer;
     user-select: none;
     border-radius: 10px;
+
+    input {
+      vertical-align: middle;
+      height: 100%;
+      margin: 0px;
+    }
 
     &:last-child {
       border-bottom: none;
     }
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.98);
+      background-color: rgba(255, 255, 255, 0.75);
+    }
+  }
+
+  .add-todo {
+    span {
+      color: #007aff;
+      font-size: 14px;
+      font-weight: 500;
+      display: block;
+    }
+
+    .add-input {
+      border: none;
+      fill: none;
+      flex: 1;
+      background-color: transparent;
+      vertical-align: middle;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.0) !important;
     }
   }
 
@@ -294,10 +349,10 @@ const closeModal = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.05);
 
   .modal-content {
-    background-color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     padding: 20px;
     border-radius: 20px;

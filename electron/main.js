@@ -17,7 +17,8 @@ const createWindow = () => {
     transparent: true,
     frame: false,
     vibrancy: 'fullscreen-ui',    // on MacOS
-    backgroundMaterial: 'acrylic' // on Windows 11
+    backgroundMaterial: 'acrylic', // on Windows 11
+    resizable: false
   })
 
   if (NODE_ENV === "development") {
