@@ -4,8 +4,8 @@ import request from '@/api/request';
 export function getTodos(data) {
   return request({
     url: '/todo/list',
-    method: 'get',
-    params: data
+    method: 'post',
+    data,
   });
 }
 // 获取今天的 Todo 项目

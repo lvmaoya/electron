@@ -11,6 +11,9 @@ dependencies:
   dayjs:
     specifier: ^1.11.13
     version: 1.11.13
+  mousetrap:
+    specifier: ^1.6.5
+    version: 1.6.5
   vue:
     specifier: ^3.5.13
     version: 3.5.13
@@ -2693,6 +2696,10 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
     dev: true
+
+  /mousetrap@1.6.5:
+    resolution: {integrity: sha512-QNo4kEepaIBwiT8CDhP98umTetp+JNfQYBWvC1pc6/OAibuXtRcxZ58Qz8skvEHYvURne/7R8T5VoOI7rDsEUA==}
+    dev: false
 
   /mrmime@2.0.0:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}

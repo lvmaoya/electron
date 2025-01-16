@@ -27,7 +27,7 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
   }
   if (NODE_ENV === "development") {
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
   }
 
   //创建系统托盘
@@ -46,8 +46,8 @@ const createWindow = () => {
     {
       label: 'File',
       submenu: [
-        { label: '新建待办',accelerator: 'Cmd+N', click: () => { console.log('New Todo clicked'); } },
-        { label: '拾取待办',accelerator: 'Cmd+G', click: () => { console.log('New Todo clicked'); } },
+        { label: '新建待办           [⌘R]' },
+        { label: '拾取待办           [⌘G]' },
         { label: 'Exit', click: () => { app.quit(); } }
       ]
     },
