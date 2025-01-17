@@ -44,8 +44,7 @@
       <draggable v-model="todos" :disabled="!state.enabled" item-key="id" ghost-class="ghost" chosen-class="chosen"
         @start="state.dragging = true" @end="onEnd" animation="300">
         <template #item="{ element }">
-          <div :class="element.progress ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)"
->
+          <div :class="element.progress ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)">
             <span :class="element.progress == 100 ? 'checkbox checked' : 'checkbox'" @click="handleDonePress(element)">
 
             </span>
@@ -119,17 +118,22 @@
 
 <script setup>
 import { ref, reactive, onMounted, nextTick, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+
 import { getTodos, getTodayTodos, orderTodo, updateTodo, addTodo } from '@/api/api';
 import draggable from 'vuedraggable';
 import dayjs from 'dayjs';
 import MoreMenu from './MoreMenu.vue';
 import Mousetrap from 'mousetrap';
+const router = useRouter();
+const route = useRoute();
 
 const state = reactive({
   enabled: true,
   dragging: false,
 });
-const currentDate = ref(dayjs().format('YYYY-MM-DD'))
+
+const currentDate = ref(route.query.date ?? dayjs().format('YYYY-MM-DD'))
 const newTodo = ref('');
 const todos = ref([]);
 const isEditing = ref(false);
@@ -158,7 +162,7 @@ const generateDefaultTodo = (title) => {
   return {
     taskName: title,
     progress: 0,
-    dueDate: '',
+    dueDate: currentDate.value + " 00:00:00",
     reminderDate: '',
     priority: 1,
     category: 1,
@@ -196,8 +200,8 @@ const saveTodo = async () => {
 };
 const handleDonePress = (element) => {
   let index = todos.value.findIndex(todo => todo.id === element.id);
-  if (index!== -1) {
-    todos.value[index].progress = todos.value[index].progress === 100? 0 : 100;
+  if (index !== -1) {
+    todos.value[index].progress = todos.value[index].progress === 100 ? 0 : 100;
     currentEditTodo.value = todos.value[index]
     saveTodo()
   }
@@ -222,8 +226,8 @@ const getTodolist = async () => {
   isTodoLoading.value = true;
   try {
     let data = {
-      createdStart: currentDate.value + " 00:00:00",
-      createdEnd: currentDate.value + " 23:59:59",
+      dueDateStart: currentDate.value + " 00:00:00",
+      dueDateEnd: currentDate.value + " 23:59:59",
     }
     const response = await getTodos(data);
     todos.value = response?.records;
@@ -238,7 +242,7 @@ const handleAddInputBlur = () => {
   isAddingTodo.value = false;
 }
 onMounted(() => {
-  getTodaytTodos();
+  refreshTodo();
 });
 const onEnd = (event) => {
   if (currentDate.value != dayjs().format('YYYY-MM-DD')) {
@@ -270,7 +274,7 @@ const handMenuItemClick = (key) => {
   showMoreMenu.value = false;
   switch (key) {
     case 'refresh':
-      getTodaytTodos();
+      refreshTodo()
       break;
     case 'today':
       currentDate.value = dayjs().format('YYYY-MM-DD')
@@ -282,19 +286,22 @@ const handMenuItemClick = (key) => {
       currentDate.value = dayjs(currentDate.value).add(1, 'day').format('YYYY-MM-DD')
       break;
     case 'dashboard':
-      console.log('delete');
+      router.push('/calendar');
       break;
     default:
       console.log('unknown');
   }
 }
 watch(() => currentDate.value, (n, o) => {
-  if (n != dayjs().format('YYYY-MM-DD')) {
+  refreshTodo()
+})
+const refreshTodo = () => {
+  if (currentDate.value != dayjs().format('YYYY-MM-DD')) {
     getTodolist()
   } else {
     getTodaytTodos()
   }
-})
+}
 </script>
 
 <style scoped>
