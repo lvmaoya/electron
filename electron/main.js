@@ -10,7 +10,7 @@ let tray = null;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 800,
+    width: 900,
     height: 600,
     titleBarStyle: 'customButtonsOnHover',
     title: 'Todo App',

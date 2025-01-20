@@ -1,7 +1,7 @@
 <template>
     <div class="calendar">
         <div class="calendar-header">
-            <h1>{{ currentMonth }}</h1>
+            <h1 @dblclick="handleCheckDateView">{{ currentMonth }}</h1>
             <div class="calendar-nav">
                 <button @click="changeMonth(-1)">
                     <svg t="1737097174023" class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -53,17 +53,16 @@
 <script setup>
 import dayjs from "dayjs";
 import { computed, ref } from "vue";
-import { useRouter } from 'vue-router';
-
+import { useRouter, useRoute } from 'vue-router';
+import { strToDayjs } from "../../utils/date.js";
 const router = useRouter();
-const currentDate = ref(dayjs());
+const route = useRoute();
+const currentDate = ref(route.query.date ? strToDayjs(route.query.date) : route.query.date ?? dayjs());
 
 const currentMonth = computed(() => {
-    return currentDate.value.format('YYYY年M月');
+    return route.query.date ?? currentDate.value.format('YYYY年M月');
 });
-const currentYear = computed(() => {
-    return currentDate.value.format('YYYY年');
-});
+
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 
@@ -95,11 +94,19 @@ const goToToday = () => {
     currentDate.value = dayjs();
 };
 const handleDayClick = (date) => {
-    console.log(date.valueOf());
+    localStorage.setItem('dashboard', '/calendar-month');
     router.push({
         path: '/',
         query: {
             date: dayjs(date.valueOf()).format('YYYY-MM-DD')
+        }
+    });
+}
+const handleCheckDateView = () => {
+    router.replace({
+        path: '/calendar-year',
+        query: {
+            date: currentDate.value.format('YYYY')
         }
     });
 }
@@ -119,6 +126,13 @@ const handleDayClick = (date) => {
         justify-content: space-between;
         align-items: center;
         padding: 0 10px;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-app-region: drag;
+
+        h1 {
+            -webkit-app-region: no-drag;
+        }
 
         .calendar-nav {
             display: flex;
@@ -135,8 +149,8 @@ const handleDayClick = (date) => {
                 align-items: center;
                 justify-content: center;
                 height: 24px;
+                -webkit-app-region: no-drag;
 
-                /* height: fit-content; */
                 svg {
                     width: 12px;
                     height: 12px;

@@ -9,7 +9,12 @@
             p-id="11684" fill="#5e5e5e"></path>
         </svg>
       </div>
-      <div class="title">{{ currentDate }}</div>
+      <div class="title">
+        {{ currentDate }}
+        <span>
+          {{ todos.filter(item => item.progress == 100).length }}/{{ todos.length }}
+        </span>
+      </div>
       <div class="button-group">
         <button @click="handleAddTodoClick" title="添加待办">
           <svg t="1736905509671" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -38,13 +43,13 @@
               p-id="5916" fill="#999999"></path>
           </svg>
         </span>
-        <input ref="addTodoInputRef" type="text" class="add-input" placeholder="请输入待办事项" @keyup.enter="handleAddTodo"
+        <input ref="addTodoInputRef" type="text" class="add-input" placeholder="请输入待办事项" @keypress.enter="handleAddTodo"
           @blur="handleAddInputBlur" v-model="newTodo">
       </div>
       <draggable v-model="todos" :disabled="!state.enabled" item-key="id" ghost-class="ghost" chosen-class="chosen"
         @start="state.dragging = true" @end="onEnd" animation="300">
         <template #item="{ element }">
-          <div :class="element.progress ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)">
+          <div :class="element.progress == 100 ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)">
             <span :class="element.progress == 100 ? 'checkbox checked' : 'checkbox'" @click="handleDonePress(element)">
 
             </span>
@@ -286,7 +291,7 @@ const handMenuItemClick = (key) => {
       currentDate.value = dayjs(currentDate.value).add(1, 'day').format('YYYY-MM-DD')
       break;
     case 'dashboard':
-      router.push('/calendar');
+      router.push(localStorage.getItem('dashboard') || '/calendar-month');
       break;
     default:
       console.log('unknown');
@@ -327,7 +332,6 @@ const refreshTodo = () => {
     height: 60px;
     justify-content: center;
     align-items: center;
-    user-select: none;
     text-align: center;
     position: relative;
     user-select: none;
@@ -338,6 +342,11 @@ const refreshTodo = () => {
       font-size: 18px;
       font-weight: bold;
       color: #007aff;
+      span{
+        font-size: 12px;
+        font-weight: 400;
+        color: #999;
+      }
     }
 
     .todo-loading {
@@ -535,8 +544,9 @@ const refreshTodo = () => {
 
 .empty {
   text-align: center;
-  margin-top: 250px;
+  margin-top: 220px;
   color: #999;
+  user-select: none;
 }
 
 .modal {

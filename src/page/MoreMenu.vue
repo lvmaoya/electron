@@ -15,10 +15,10 @@ const handOverLayClick = () => {
 }
 const emit = defineEmits(["closeMenu","menuItemClick"])
 const menuList = ref([
-    {label: "刷新  [F]", key: "refresh"},
-    {label: "今日全部", key: "today", active: false},
-    {label: "前一天", key: "prev", active: false},
-    {label: "后一天", key: "next", active: false},
+    {label: "Refresh  [F]", key: "refresh"},
+    {label: "Current Day", key: "today", active: false},
+    {label: "Previous Day", key: "prev", active: false},
+    {label: "Next Day", key: "next", active: false},
     {label: "Dashboard", key: "dashboard"},
 ])
 const handMenuItemClick = (item, index) => {
