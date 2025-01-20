@@ -11,7 +11,7 @@
       </div>
       <div class="title">
         {{ currentDate }}
-        <span>
+        <span v-if="todos.length > 0 && isAddingTodo">
           {{ todos.filter(item => item.progress == 100).length }}/{{ todos.length }}
         </span>
       </div>
