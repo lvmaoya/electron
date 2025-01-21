@@ -49,7 +49,8 @@
       <draggable v-model="todos" :disabled="!state.enabled" item-key="id" ghost-class="ghost" chosen-class="chosen"
         @start="state.dragging = true" @end="onEnd" animation="300">
         <template #item="{ element }">
-          <div :class="element.progress == 100 ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)">
+          <div :class="element.progress == 100 ? 'progress todo-item' : 'todo-item'" @dblclick="editTodo(element)"
+            @contextmenu="handleContextMenu">
             <span :class="element.progress == 100 ? 'checkbox checked' : 'checkbox'" @click="handleDonePress(element)">
 
             </span>
@@ -213,6 +214,10 @@ const handleDonePress = (element) => {
 }
 const removeTodo = (index) => {
   todos.value.splice(index, 1);
+};
+const handleContextMenu = (event) => {
+  console.log('handleContextMenu', event);
+  window.ContextMenu.show("");
 };
 
 const getTodaytTodos = async () => {

@@ -1,6 +1,6 @@
 // main.js
 
-const { app, BrowserWindow, Tray, Menu, screen } = require('electron')
+const { app, BrowserWindow, Tray, Menu, screen, contextBridge,ipcMain  } = require('electron')
 const NODE_ENV = process.env.env
 const path = require('path')
 
@@ -14,14 +14,14 @@ const createWindow = () => {
     height: 600,
     titleBarStyle: 'customButtonsOnHover',
     title: 'Todo App',
-    // transparent: true,
+    transparent: true,
     frame: false,
     vibrancy: 'fullscreen-ui',    // on MacOS
     backgroundMaterial: 'acrylic', // on Windows 11
     resizable: false,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, './preload.js')
     },
   })
 
@@ -102,7 +102,16 @@ const createTodoWindow = (trayBounds) => {
     todoWindow.show();
   });
 }
-
+ipcMain.on('show-context-menu', (event) => {
+  const template = [
+    {
+      label: 'Menu Item 1',
+      click: () => { event.sender.send('context-menu-command', 'menu-item-1') }
+    }
+  ]
+  const menu = Menu.buildFromTemplate(template)
+  menu.popup({ window: BrowserWindow.fromWebContents(event.sender) })
+})
 app.whenReady().then(() => {
   createWindow()
 
