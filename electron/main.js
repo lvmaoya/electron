@@ -14,11 +14,15 @@ const createWindow = () => {
     height: 600,
     titleBarStyle: 'customButtonsOnHover',
     title: 'Todo App',
-    transparent: true,
+    // transparent: true,
     frame: false,
     vibrancy: 'fullscreen-ui',    // on MacOS
     backgroundMaterial: 'acrylic', // on Windows 11
-    resizable: false
+    resizable: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
   })
 
   if (NODE_ENV === "development") {

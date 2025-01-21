@@ -11,7 +11,7 @@
       </div>
       <div class="title">
         {{ currentDate }}
-        <span v-if="todos.length > 0 && isAddingTodo">
+        <span v-if="todos.length > 0 && !isAddingTodo">
           {{ todos.filter(item => item.progress == 100).length }}/{{ todos.length }}
         </span>
       </div>
@@ -342,7 +342,8 @@ const refreshTodo = () => {
       font-size: 18px;
       font-weight: bold;
       color: #007aff;
-      span{
+
+      span {
         font-size: 12px;
         font-weight: 400;
         color: #999;

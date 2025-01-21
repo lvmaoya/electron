@@ -1,5 +1,5 @@
 <template>
-    <div class="calendar">
+    <div class="calendar" @wheel="handleWheel">
         <div class="calendar-header">
             <h1 @dblclick="handleCheckDateView">{{ currentYear }}</h1>
             <div class="calendar-nav">
@@ -60,6 +60,7 @@ import dayjs from "dayjs";
 import { computed, ref } from "vue";
 import { useRouter, useRoute } from 'vue-router';
 import { strToDayjs } from "../../utils/date.js";
+import { throttle } from "@/utils/throttle.js";
 
 const router = useRouter();
 const route = useRoute();
@@ -135,6 +136,22 @@ const handleCheckDateView = () => {
         path: '/calendar-month',
     });
 }
+const wheel = (event) => {    
+    if (route.query.date) {
+        router.push({
+            path: route.path
+        });
+    }
+    if (event.deltaY > 0) {
+        changeYear(-1)
+    } else {
+        changeYear(1)
+    }
+};
+
+const throttledWheel = throttle(wheel, 300, true);
+
+const handleWheel = () => throttledWheel(event);
 </script>
 
 <style scoped>
@@ -260,7 +277,6 @@ const handleCheckDateView = () => {
                     &.today {
                         font-weight: bold;
                         display: flex;
-                        align-items: center;
                         justify-content: center;
 
                         .day-number {
