@@ -60,13 +60,16 @@
       </draggable>
     </div>
     <div v-else class="empty">
-      {{ isTodoLoading ? 'Loading...' : errorMessage ? errorMessage : '暂无待办事项' }}
+      <loading v-show="isTodoLoading"></loading>
+      <span v-if="!isTodoLoading">{{ errorMessage == "" ? "暂无待办事项" : errorMessage }}</span>
     </div>
   </div>
   <!-- 编辑弹窗 -->
   <div v-if="isEditing" class="modal" @click="closeModal">
     <div class="modal-content" @click.stop>
-      <!-- <h2>编辑 Todo</h2> -->
+      <!-- <div class="modal-header">
+        <h2>编辑</h2>
+      </div> -->
       <div class="form-group">
         <label for="taskName">Task name</label>
         <input id="taskName" v-model="currentEditTodo.taskName" placeholder="Edit task name" />
@@ -114,9 +117,14 @@
         <textarea id="description" rows="4" v-model="currentEditTodo.description"
           placeholder="some description..."></textarea>
       </div>
-      <button @click="saveTodo">
-        保存
-      </button>
+      <div class="modal-button-group">
+        <button @click="removeTodo">
+          删除
+        </button>
+        <button @click="saveTodo">
+          保存
+        </button>
+      </div>
     </div>
   </div>
   <MoreMenu v-show="showMoreMenu" @close-menu="handCloseMenu" @menu-item-click="handMenuItemClick"></MoreMenu>
@@ -126,11 +134,13 @@
 import { ref, reactive, onMounted, nextTick, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
-import { getTodos, getTodayTodos, orderTodo, updateTodo, addTodo } from '@/api/api';
+import { getTodos, getTodayTodos, orderTodo, updateTodo, addTodo, deleteTodo } from '@/api/api';
 import draggable from 'vuedraggable';
 import dayjs from 'dayjs';
 import MoreMenu from './MoreMenu.vue';
 import Mousetrap from 'mousetrap';
+import Loading from '../components/loading/index.vue';
+import { delay } from '@/utils/delay.js';
 const router = useRouter();
 const route = useRoute();
 
@@ -212,11 +222,13 @@ const handleDonePress = (element) => {
     saveTodo()
   }
 }
-const removeTodo = (index) => {
+const removeTodo = async () => {
+  const index = todos.value.findIndex(todo => todo.id === currentEditTodo.value.id);
   todos.value.splice(index, 1);
+  await deleteTodo(currentEditTodo.value.id);
+  isEditing.value = false;
 };
 const handleContextMenu = (event) => {
-  console.log('handleContextMenu', event);
   window.ContextMenu.show("");
 };
 
@@ -224,6 +236,7 @@ const getTodaytTodos = async () => {
   isTodoLoading.value = true;
   try {
     const response = await getTodayTodos();
+    await delay(1000);
     todos.value = response;
   } catch (error) {
     errorMessage.value = error.message
@@ -240,6 +253,7 @@ const getTodolist = async () => {
       dueDateEnd: currentDate.value + " 23:59:59",
     }
     const response = await getTodos(data);
+    await delay(1000);
     todos.value = response?.records;
   } catch (error) {
     errorMessage.value = error.message
@@ -549,9 +563,10 @@ const refreshTodo = () => {
 
 
 .empty {
-  text-align: center;
-  margin-top: 220px;
-  color: #999;
+  display: flex;
+  justify-content: center;
+  margin-top: calc(50vh - 70px);
+  color: #439fff;
   user-select: none;
 }
 
@@ -580,6 +595,15 @@ const refreshTodo = () => {
     row-gap: 16px;
     box-sizing: content-box;
     overflow: hidden;
+
+    .modal-header {
+      /* width: 100%;
+      h2{
+        padding: 0;
+        margin: 0;
+        font-size: 16px;
+      } */
+    }
 
     .form-group {
       width: calc(50% - 10px);
@@ -632,14 +656,25 @@ const refreshTodo = () => {
       }
     }
 
-    button {
+    .modal-button-group {
+      display: flex;
       width: 100%;
-      height: 36px;
-      border-radius: 6px;
-      border: none;
-      background-color: #439fff;
-      color: white;
+      button {
+        height: 36px;
+        border-radius: 6px;
+        border: none;
+        background-color: #439fff;
+        color: white;
+        flex: 1;
+        justify-content: space-between;
+        box-sizing: border-box;
+      }
+      button:first-child {
+        margin-right: 10px;
+        background-color: rgb(255, 124, 124);
+      }
     }
+
   }
 }
 </style>

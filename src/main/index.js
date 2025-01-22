@@ -3,6 +3,7 @@
 const { app, BrowserWindow, Tray, Menu, screen, contextBridge,ipcMain  } = require('electron')
 const NODE_ENV = process.env.env
 const path = require('path')
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
 let todoWindow = null;
 let mainWindow = null;
@@ -19,23 +20,21 @@ const createWindow = () => {
     vibrancy: 'fullscreen-ui',    // on MacOS
     backgroundMaterial: 'acrylic', // on Windows 11
     resizable: false,
+    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       nodeIntegration: true,
-      preload: path.join(__dirname, './preload.js')
+      preload: path.join(__dirname, '../preload/index.js')
     },
   })
-
-  if (NODE_ENV === "development") {
-    mainWindow.loadURL('http://localhost:3000/')
+  
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
-  }
-  if (NODE_ENV === "development") {
-    mainWindow.webContents.openDevTools()
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
   //创建系统托盘
-  tray = new Tray(path.join(__dirname, '../assets/todo.png'))
+  tray = new Tray(path.join(__dirname, '../../resource/todo.png'))
   tray.setToolTip('Todo App');
   tray.on('click', (event, bounds) => {
     if (todoWindow && todoWindow.isVisible()) {
