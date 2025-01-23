@@ -160,12 +160,14 @@ const addTodoInputRef = ref();
 const showMoreMenu = ref(false);
 const isTodoLoading = ref(false);
 const errorMessage = ref("");
-const handleAddTodo = () => {
+// todo 新增成功后没有及时更新id，导致更新时变成新增。
+// 需要更新后端接口，返回新增的todo
+const handleAddTodo = async () => {
   if (newTodo.value.trim() !== '') {
     let todo = generateDefaultTodo(newTodo.value);
     todos.value.unshift(todo);
     newTodo.value = '';
-    addTodo(todo);
+    await addTodo(todo);
   }
 };
 const handleAddTodoClick = () => {
@@ -224,9 +226,9 @@ const handleDonePress = (element) => {
 }
 const removeTodo = async () => {
   const index = todos.value.findIndex(todo => todo.id === currentEditTodo.value.id);
-  todos.value.splice(index, 1);
   await deleteTodo(currentEditTodo.value.id);
-  isEditing.value = false;
+  todos.value.splice(index, 1);
+  closeModal();
 };
 const handleContextMenu = (event) => {
   window.ContextMenu.show("");
