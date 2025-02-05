@@ -13,13 +13,15 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 600,
+    minWidth: 900,
+    minHeight: 600,
     titleBarStyle: 'customButtonsOnHover',
     title: 'Todo App',
     transparent: true,
     frame: false,
     vibrancy: 'fullscreen-ui',    // on MacOS
     backgroundMaterial: 'acrylic', // on Windows 11
-    resizable: false,
+    resizable: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       nodeIntegration: true,
@@ -101,7 +103,7 @@ const createTodoWindow = (trayBounds) => {
     todoWindow.show();
   });
 }
-ipcMain.on('show-context-menu', (event) => {
+ipcMain.on('show-context-menu1', (event) => {
   const template = [
     {
       label: 'Menu Item 1',

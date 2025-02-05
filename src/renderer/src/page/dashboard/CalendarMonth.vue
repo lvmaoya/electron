@@ -31,19 +31,40 @@
         <div class="calendar-weekdays">
             <div v-for="day in weekdays" :key="day">{{ day }}</div>
         </div>
-        <div class="calendar-body">
-            <div v-for="{ date, isCurrentMonth, isToday } in calendarDays" :key="date.valueOf()" :class="{
-                'calendar-day': true,
-                'current-month': isCurrentMonth,
-                'today': isToday
-            }" @click="handleDayClick(date)">
-                <div class="day-number">
-                    <span>
-                        {{ date.date() }}
-                    </span>
-                    <span>
-                        日
-                    </span>
+        <div class="calendar-body"
+            :style="{ 'grid-template-rows': `repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)` }">
+            <div v-for="{ date, isCurrentMonth, isToday, todos, progress } in calendarDays" :key="date.valueOf()"
+                :class="{
+                    'calendar-day': true,
+                    'current-month': isCurrentMonth,
+                    'today': isToday
+                }" @dblclick="handleDayClick(date)">
+                <div class="top">
+                    <div class="day-number">
+                        <span>
+                            {{ date.date() }}
+                        </span>
+                        <span>
+                            日
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar">
+                            {{ }}
+                        </div>
+                    </div>
+                </div>
+                <div class="middle">
+                    <!-- 日程列表 -->
+                    <div class="schedule-list">
+                        <div v-for="(schedule, index) in todos" :key="schedule.id">
+                            <div v-if="index < 3" class="schedule" :class="getProgressClass(schedule.progress, index)">
+                                <div class="schedule-title" v-if="index < 2">{{ schedule.taskName }}</div>
+                                <div class="schedule-title more" v-if="todos.length > 2 && index == 2">还有{{ todos.length
+                                    - 2 }}项...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -52,10 +73,12 @@
 
 <script setup>
 import dayjs from "dayjs";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useRouter, useRoute } from 'vue-router';
 import { strToDayjs } from "../../utils/date.js";
 import { throttle } from "@/utils/throttle.js";
+import { getTodos } from '@/api/api';
+
 const router = useRouter();
 const route = useRoute();
 const currentDate = ref(route.query.date ? strToDayjs(route.query.date) : route.query.date ?? dayjs());
@@ -66,6 +89,7 @@ const currentMonth = computed(() => {
 
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+const todoList = ref([]);
 
 const calendarDays = computed(() => {
     const firstDayOfMonth = currentDate.value.startOf('month');
@@ -77,15 +101,49 @@ const calendarDays = computed(() => {
     let day = startDate;
 
     while (day.isBefore(endDate) || day.isSame(endDate, 'day')) {
+        const todos = todoList.value.filter(todo => dayjs(todo.createdTime).isSame(day, 'day'));
+        let progress = 0;
+        if (todos.length) {
+            progress = todos.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue.progress;
+            }, 0) / todos.length * 100;
+        }
         days.push({
             date: day,
             isCurrentMonth: day.month() === currentDate.value.month(),
             isToday: day.isSame(dayjs(), 'day'),
+            todos,
+            progress
         });
         day = day.add(1, 'day');
     }
-
     return days;
+});
+const getProgressClass = (progress, index) => {
+    if (index == 2) {
+        return 'hide';
+    }
+    if (progress >= 0 && progress < 20) {
+        return 'progress-low';
+    } else if (progress >= 20 && progress < 60) {
+        return 'progress-medium';
+    } else if (progress >= 60 && progress < 80) {
+        return 'progress-high';
+    } else {
+        return 'progress-complete';
+    }
+}
+const getAllTodos = async () => {
+    let data = {
+        page: 1,
+        pagesize: 99999999,
+    }
+    const response = await getTodos(data);
+    // await delay(1000);
+    todoList.value = response?.records;
+};
+onMounted(() => {
+    getAllTodos();
 });
 const changeMonth = (delta) => {
     currentDate.value = currentDate.value.add(delta, 'month');
@@ -209,10 +267,12 @@ const handleWheel = () => throttledWheel(event);
         .calendar-day {
             text-align: left;
             padding: 4px;
-            /* height: 72px; */
             border-right: var(--border-style);
             border-bottom: var(--border-style);
             color: #ccc;
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
 
             &:nth-child(7n) {
                 background-color: rgba(204, 204, 204, 0.1) !important;
@@ -227,28 +287,86 @@ const handleWheel = () => throttledWheel(event);
                 color: #333;
             }
 
-            .day-number {
+            .top {
                 display: flex;
+                gap: 4px;
+                justify-content: space-between;
+                margin-bottom: 4px;
 
-                span {
-                    display: block;
+                .day-number {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    span {
+                        display: block;
+                    }
+                }
+            }
+
+            .middle {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                flex: 1;
+                overflow: hidden;
+
+                .schedule-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    
+                    .schedule {
+                        padding: 2px 4px;
+                        border-radius: 83px;
+                        color: white;
+
+                        .schedule-title {
+                            font-size: 10px;
+                            overflow: hidden;
+                            white-space: nowrap;
+                            text-overflow: ellipsis;
+                            max-width: 100%;
+                        }
+                    }
                 }
             }
 
             &.today {
-                font-weight: bold;
 
                 .day-number {
-                    background-color: #ff3b30;
-                    color: white;
+                    font-weight: bold;
+                    /* background-color: #ff3b30; */
+                    color: #ff3b30;
                     border-radius: 50%;
-                    width: 28px;
-                    height: 28px;
-                    text-align: center;
-                    line-height: 28px;
+                    /* width: 28px;
+                    height: 28px; */
+                    /* text-align: center;
+                    line-height: 28px; */
                 }
             }
         }
     }
+}
+
+/* 进度等级样式 */
+.progress-low {
+    background-color: rgba(255, 0, 0, 0.5); /* 红色，透明度 0.5 */
+}
+
+.progress-medium {
+    background-color: rgba(212, 212, 32, 0.9); /* 黄色，透明度 0.5 */
+}
+
+.progress-high {
+    background-color: rgba(255, 165, 0, 0.5); /* 橙色，透明度 0.5 */
+}
+
+.progress-complete {
+    background-color: rgba(0, 128, 0, 0.5); /* 绿色，透明度 0.5 */
+}
+.hide {
+    background-color: transparent;
+    color: #333 !important;
 }
 </style>
