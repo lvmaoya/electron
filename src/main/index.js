@@ -1,6 +1,6 @@
 // main.js
 
-const { app, BrowserWindow, Tray, Menu, screen, contextBridge,ipcMain  } = require('electron')
+const { app, BrowserWindow, Tray, Menu, screen, contextBridge, ipcMain } = require('electron')
 const NODE_ENV = process.env.env
 const path = require('path')
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -38,11 +38,13 @@ const createWindow = () => {
   tray = new Tray(path.join(__dirname, '../../resource/todo.png'))
   tray.setToolTip('Todo App');
   tray.on('click', (event, bounds) => {
-    if (todoWindow && todoWindow.isVisible()) {
-      todoWindow.hide();
-    } else {
-      createTodoWindow(bounds);
-    }
+    // if (todoWindow && todoWindow.isVisible()) {
+    //   todoWindow.hide();
+    // } 
+    // else {
+    //   createTodoWindow(bounds);
+    // }
+    showWindow();
   });
 
   // 创建应用菜单
@@ -67,6 +69,15 @@ const createWindow = () => {
   mainWindow.webContents.on('message', (event, message) => {
     console.log(`Received message: ${message}`)
   })
+}
+const showWindow = () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.show();
+    mainWindow.focus();
+  }
 }
 const createTodoWindow = (trayBounds) => {
   if (todoWindow) {
