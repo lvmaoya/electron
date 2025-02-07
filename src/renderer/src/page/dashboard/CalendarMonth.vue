@@ -31,7 +31,7 @@
         <div class="calendar-weekdays">
             <div v-for="day in weekdays" :key="day">{{ day }}</div>
         </div>
-        <div class="calendar-body"
+        <div class="calendar-body" ref="calendarBodyRef"
             :style="{ 'grid-template-rows': `repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)` }">
             <div v-for="{ date, isCurrentMonth, isToday, todos, progress } in calendarDays" :key="date.valueOf()"
                 :class="{
@@ -50,7 +50,7 @@
                     </div>
                     <div class="progress">
                         <div class="progress-bar">
-                            {{ }}
+                            {{ progress.toFixed(0) }}% {{ maxVisible }}
                         </div>
                     </div>
                 </div>
@@ -58,12 +58,12 @@
                     <!-- 日程列表 -->
                     <div class="schedule-list">
                         <div v-for="(schedule, index) in todos" :key="schedule.id">
-                            <div v-if="index < 3" class="schedule" :class="getProgressClass(schedule.progress, index)">
-                                <div class="schedule-title" v-if="index < 2">{{ schedule.taskName }}</div>
-                                <div class="schedule-title more" v-if="todos.length > 2 && index == 2">还有{{ todos.length
-                                    - 2 }}项...</div>
-                            </div>
+                            <div class="schedule-title" :class="getProgressClass(schedule.progress, index)"
+                                v-if="(todos.length <= maxVisible && index < maxVisible) || (todos.length > maxVisible && index < maxVisible - 1)">
+                                {{ schedule.taskName }}</div>
                         </div>
+                        <div class="schedule-title hide" v-if="todos.length > maxVisible">还有{{ todos.length
+                            - maxVisible + 1 }}项...</div>
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@
 
 <script setup>
 import dayjs from "dayjs";
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, onUnmounted, watch, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from 'vue-router';
 import { strToDayjs } from "../../utils/date.js";
 import { throttle } from "@/utils/throttle.js";
@@ -82,7 +82,21 @@ import { getTodos } from '@/api/api';
 const router = useRouter();
 const route = useRoute();
 const currentDate = ref(route.query.date ? strToDayjs(route.query.date) : route.query.date ?? dayjs());
-
+const calendarBodyRef = ref(null);
+const resizeObserver = new ResizeObserver(entries => {
+    updateMaxVisible();
+});
+const updateMaxVisible = () => {
+    if (calendarBodyRef.value) {
+        let height = calendarBodyRef.value.offsetHeight;
+        height = height / Math.ceil(calendarDays.value.length / 7)
+        if (height < 80) {
+            maxVisible.value = 3;
+        } else {
+            maxVisible.value = Math.floor((height - 20 - 60) / 20) + 3;
+        }
+    }
+}
 const currentMonth = computed(() => {
     return route.query.date ?? currentDate.value.format('YYYY年M月');
 });
@@ -90,6 +104,7 @@ const currentMonth = computed(() => {
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const todoList = ref([]);
+const maxVisible = ref(3);
 
 const calendarDays = computed(() => {
     const firstDayOfMonth = currentDate.value.startOf('month');
@@ -101,12 +116,13 @@ const calendarDays = computed(() => {
     let day = startDate;
 
     while (day.isBefore(endDate) || day.isSame(endDate, 'day')) {
-        const todos = todoList.value.filter(todo => dayjs(todo.createdTime).isSame(day, 'day'));
+        const todos = todoList.value.filter(todo => dayjs(todo.dueDate).isSame(day, 'day'));
         let progress = 0;
+
         if (todos.length) {
             progress = todos.reduce((accumulator, currentValue) => {
                 return accumulator + currentValue.progress;
-            }, 0) / todos.length * 100;
+            }, 0) / (todos.length * 100);
         }
         days.push({
             date: day,
@@ -120,9 +136,6 @@ const calendarDays = computed(() => {
     return days;
 });
 const getProgressClass = (progress, index) => {
-    if (index == 2) {
-        return 'hide';
-    }
     if (progress >= 0 && progress < 20) {
         return 'progress-low';
     } else if (progress >= 20 && progress < 60) {
@@ -139,12 +152,22 @@ const getAllTodos = async () => {
         pagesize: 99999999,
     }
     const response = await getTodos(data);
-    // await delay(1000);
     todoList.value = response?.records;
 };
+
 onMounted(() => {
     getAllTodos();
+    if (calendarBodyRef.value) {
+        resizeObserver.observe(calendarBodyRef.value);
+    }
 });
+
+onBeforeUnmount(() => {
+    if (calendarBodyRef.value) {
+        resizeObserver.unobserve(calendarBodyRef.value);
+    }
+});
+
 const changeMonth = (delta) => {
     currentDate.value = currentDate.value.add(delta, 'month');
 };
@@ -181,6 +204,7 @@ const wheel = (event) => {
     } else {
         changeMonth(1)
     }
+    updateMaxVisible();
 };
 
 const throttledWheel = throttle(wheel, 300, true);
@@ -302,6 +326,11 @@ const handleWheel = () => throttledWheel(event);
                         display: block;
                     }
                 }
+
+                .progress {
+                    font-size: 14px;
+                    color: #999;
+                }
             }
 
             .middle {
@@ -312,23 +341,18 @@ const handleWheel = () => throttledWheel(event);
                 overflow: hidden;
 
                 .schedule-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                    
-                    .schedule {
+                    .schedule-title {
+                        font-size: 10px;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
                         padding: 2px 4px;
                         border-radius: 83px;
                         color: white;
-
-                        .schedule-title {
-                            font-size: 10px;
-                            overflow: hidden;
-                            white-space: nowrap;
-                            text-overflow: ellipsis;
-                            max-width: 100%;
-                        }
+                        max-width: 100%;
+                        margin-bottom: 2px;
                     }
+
                 }
             }
 
@@ -351,20 +375,25 @@ const handleWheel = () => throttledWheel(event);
 
 /* 进度等级样式 */
 .progress-low {
-    background-color: rgba(255, 0, 0, 0.5); /* 红色，透明度 0.5 */
+    background-color: rgba(255, 0, 0, 0.5);
+    /* 红色，透明度 0.5 */
 }
 
 .progress-medium {
-    background-color: rgba(212, 212, 32, 0.9); /* 黄色，透明度 0.5 */
+    background-color: rgba(212, 212, 32, 0.9);
+    /* 黄色，透明度 0.5 */
 }
 
 .progress-high {
-    background-color: rgba(255, 165, 0, 0.5); /* 橙色，透明度 0.5 */
+    background-color: rgba(255, 165, 0, 0.5);
+    /* 橙色，透明度 0.5 */
 }
 
 .progress-complete {
-    background-color: rgba(0, 128, 0, 0.5); /* 绿色，透明度 0.5 */
+    background-color: rgba(0, 128, 0, 0.5);
+    /* 绿色，透明度 0.5 */
 }
+
 .hide {
     background-color: transparent;
     color: #333 !important;
