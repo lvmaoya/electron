@@ -42,7 +42,7 @@
                         'calendar-day': true,
                         'current-month': isCurrentMonth,
                         'today': isToday
-                    }" @click="handleDayClick(date)">
+                    }" @dblclick="handleDayClick(date)">
                         <div class="day-number">
                             <span>
                                 {{ date.date() }}
@@ -136,7 +136,7 @@ const handleCheckDateView = () => {
         path: '/calendar-month',
     });
 }
-const wheel = (event) => {    
+const wheel = (event) => {
     if (route.query.date) {
         router.push({
             path: route.path
@@ -283,8 +283,9 @@ const handleWheel = () => throttledWheel(event);
                             background-color: #ff3b30;
                             color: white;
                             border-radius: 50%;
-                            width: fit-content;
-                            height: fit-content;
+                            width: 15px;
+                            height: 15px;
+                            aspect-ratio: 1/1;
                         }
                     }
                 }
