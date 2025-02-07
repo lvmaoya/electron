@@ -50,7 +50,7 @@
                     </div>
                     <div class="progress">
                         <div class="progress-bar">
-                            {{ progress.toFixed(0) }}% {{ maxVisible }}
+                            {{ progress.toFixed(0) }}%
                         </div>
                     </div>
                 </div>
@@ -329,7 +329,7 @@ const handleWheel = () => throttledWheel(event);
 
                 .progress {
                     font-size: 14px;
-                    color: #999;
+                    color: #ccc;
                 }
             }
 
