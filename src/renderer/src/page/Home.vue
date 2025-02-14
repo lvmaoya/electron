@@ -165,9 +165,10 @@ const errorMessage = ref("");
 const handleAddTodo = async () => {
   if (newTodo.value.trim() !== '') {
     let todo = generateDefaultTodo(newTodo.value);
-    todos.value.unshift(todo);
+    todos.value.push(todo);
     newTodo.value = '';
-    await addTodo(todo);
+    let addRes = await addTodo(todo);
+    todos.value[todos.value.length - 1] = { ...addRes };
   }
 };
 const handleAddTodoClick = () => {
@@ -661,6 +662,7 @@ const refreshTodo = () => {
     .modal-button-group {
       display: flex;
       width: 100%;
+
       button {
         height: 36px;
         border-radius: 6px;
@@ -671,6 +673,7 @@ const refreshTodo = () => {
         justify-content: space-between;
         box-sizing: border-box;
       }
+
       button:first-child {
         margin-right: 10px;
         background-color: rgb(255, 124, 124);
