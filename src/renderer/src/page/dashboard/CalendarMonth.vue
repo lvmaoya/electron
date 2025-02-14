@@ -122,7 +122,7 @@ const calendarDays = computed(() => {
         if (todos.length) {
             progress = todos.reduce((accumulator, currentValue) => {
                 return accumulator + currentValue.progress;
-            }, 0) / (todos.length * 100);
+            }, 0) / (todos.length * 100) * 100;
         }
         days.push({
             date: day,
